@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}History{% endblock title %}
+{% if islogged %}{% block username %}{{user}}{% endblock username %}{% endif %}
 {% block nav %}
 <li class="nav-item">
     <a class="nav-link" href="/logout">Logout
