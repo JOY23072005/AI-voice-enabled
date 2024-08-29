@@ -7,7 +7,7 @@
       "config": { "maxLambdaSize": "15mb" }
     },
     {
-      "src": "staticfiles/**/*",
+      "src": "static/**/*",
       "use": "@vercel/static"
     }
   ],
