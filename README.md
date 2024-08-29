@@ -4,8 +4,8 @@ This project is a web-based AI voice assistant that interacts with users through
 
 ## Features
 
-- **AI Voice Assistant**: Users can interact with the assistant via voice commands. The assistant listens to the user's queries and provides voice responses.
-- **User Authentication**: Includes a user login/signup system to keep track of user interactions.
+- **AI Voice Assistant**: Users can interact with the assistant via voice commands  on the `index.html` page. The assistant listens to the user's queries and provides voice responses.
+- **User Authentication**: Includes a user login/signup system to keep track of user interactions on the `login.html` page.
 - **User History**: The system stores the last 10 queries made by the user, which can be viewed on the `history.html` page.
 - **Responsive Design**: The application is built with a responsive design, ensuring compatibility with various devices.
 
