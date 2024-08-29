@@ -59,8 +59,8 @@ To run this project locally, follow these steps:
 
 ## Usage
 
-- **Voice Interaction**: Speak to the assistant by clicking the microphone button. The assistant will process your speech and provide an answer.
-- **User Authentication**: Log in or sign up to track your interaction history.
+- **Voice Interaction**: Speak to the assistant by clicking the microphone button on the `index.html` page. The assistant will process your speech and provide an answer.
+- **User Authentication**: Log in or sign up to track your interaction history on the `login.html` page.
 - **View History**: Check your last 10 interactions on the `history.html` page.
 
 ## Contributing
