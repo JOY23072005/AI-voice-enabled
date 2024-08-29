@@ -111,6 +111,7 @@ def History(request):
             return JsonResponse({'status': 'success', 'history': history, 'user': user})
     hist=userHistory.objects.filter(name=user)
     context={
-         "hist":hist
+         "hist":hist,
+         "user":user,
     }
     return render(request,"history.html",context)
