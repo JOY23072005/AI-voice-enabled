@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock title %}
+{% if islogged %}{% block username %}{{user}}{% endblock username %}{% endif %}
+{% block nav %}
+<li class="nav-item">
+  <a class="nav-link" href="/{{url}}">{{signin}}
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="25" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+      <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+    </svg>
+  </a>
+</li>
+<li class="nav-item dropdown disabled history" >
+  <a class="nav-link dropdown-toggle disabled history" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    History
+  </a>
+  <ul class="dropdown-menu">
+    <li><a href="/history" class="dropdown-item text-wrap" id="hist1">{{hist1}}</a></li>
+    <li><a href="/history" class="dropdown-item text-wrap" id="hist2">{{hist2}}</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="/history">Show More</a></li>
+  </ul>
+</li>
+{% endblock nav %}
+{% block body %}
+<p class="hidden">{{navclass}}</p>
+<p class="hidden">{{offclass}}</p>
+  <div class="card-1">
+    <div class="card" id="result">
+      <img src="/static/voice.gif" class="card-img-top" alt="Alex">
+    
+      <div class="card-body">
+          <p class="card-text" id ="user"></p>
+        <h5 class="card-title">Here is result for your query.</h5>
+        <p class="card-text" id="alex"></p>
+      </div>
+    </div>
+  
+    <div class="card right" id="process" aria-hidden="true">
+      <img src="/static/voice.gif" class="card-img-top" alt="Alex">
+      <div class="card-body">
+        <h5 class="card-title placeholder-glow">
+          <span class="placeholder col-6"></span>
+        </h5>
+        <p class="card-text placeholder-glow">
+          <span class="placeholder col-7"></span>
+          <span class="placeholder col-4"></span>
+          <span class="placeholder col-4"></span>
+          <span class="placeholder col-6"></span>
+          <span class="placeholder col-8"></span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="buttons">
+      <button id ="start" class="button">Start</button>
+  </div>
+  <script>
+    var API='{{apikey}}';
+      var islogged={{islogged}}
+      var user='{{user}}'
+  </script>
+  <script src="/static/app.js"></script>
+{% endblock body %}

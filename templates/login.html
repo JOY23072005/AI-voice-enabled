@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block nav %}
+<li class="nav-item">
+    <a class="nav-link" href="/{{url}}">{{signin}}
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="25" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+        <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+        </svg>
+    </a>
+</li>
+{% endblock nav %}
+{% block title %}{{url2}}{% endblock title %}
+{% block body %}
+<span class="head"><h1 class="heading white">{{variable}}</h1></span>
+<main>
+    <section>
+        <div class="forms">
+            <form method="post" action="/{{url2}}" data-bs-theme="dark">
+            {% csrf_token %}
+                {{type}}
+                <div class="mb-3 my-5">
+                <label for="name" class="form-label">Username</label>
+                <input type="name" class="form-control" name="name" id="name" aria-describedby="name" placeholder="Enter your name">
+                </div>
+                <div class="mb-3">
+                <label for="exampleInputPassword1" class="form-label">Password</label>
+                <input type="password" class="form-control" name="password" id="Password" placeholder="Password">
+                </div>
+                <button type="submit" class="btn btn-primary">{{variable}}</button>
+          </form>
+        </div>
+    </sectiion>
+</main>
+<span class="signup"><a style="color:white;" href="{{url}}">{{signin}}?</a></span>
+{% endblock body %}

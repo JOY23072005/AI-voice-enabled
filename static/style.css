@@ -1,0 +1,151 @@
+*{
+    margin:0;
+    padding:0;
+}
+body{
+    overflow-x: hidden;
+    background-image: url('bg.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+::-webkit-scrollbar{
+    width: 0.5rem;
+}
+::-webkit-scrollbar-track{
+    background-color:#000;
+}
+::-webkit-scrollbar-thumb{
+    background-color: purple;
+    border-radius: 1rem;
+    border: 0.5 rem solid transparent;
+    background-clip: content-box;
+}
+.navbar{
+    padding: 0;
+}
+#logo{
+    height:30px;
+    width:100px;
+    padding: 0;
+    margin: 0;
+}
+#result{
+    display:none;
+    left:33.5%;
+}
+#process{
+    display: none;
+}
+.buttons{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2%;
+}
+@keyframes downmove {
+    from {top: -300px;}
+    to {top: 0px;}
+}
+@keyframes upmove {
+    from {top: 600px;}
+    to {top: 300px;}
+}
+@keyframes rightmove {
+    from {left: 0px;}
+    to {left:33.5vw;}
+}
+.card{
+    margin-top: 100px;
+    width: 33vw;
+    height: 800px;
+    position: relative;
+}
+  
+.right{
+    animation: rightmove 4s forwards;
+}
+.down{
+    animation: downmove 1s forwards;
+}
+.up{
+    animation:  upmove 1s forwards;
+}
+.card img{
+    width: 32.5vw;
+    height: 25vw;
+}
+.button{
+    background-color: rgba(0,0,0,0);
+    color:white;
+    border: solid 3px white;
+    top: 300px;
+    font-weight: 800;
+    border-radius: 50%;
+    height:85px;
+    width:90px;
+    position: relative;
+}
+footer{
+    width: 100%;
+    margin-top: auto;
+}
+.button:hover{
+    color:black;
+    background-color: white;
+    border-color: white;
+    cursor: pointer;
+}
+#base{
+    color: white;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+section{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+.head{
+    width:100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.heading{
+    font-family:cursive;
+    position: relative;
+    top:50px;
+    padding:2% 0;
+}
+.white{
+    color:white !important;
+    text-decoration: none;
+}
+.forms{
+    background-color: rgb(54, 55, 55,0.5);
+    padding: 0 2%;
+    padding-bottom: 2%;
+    margin-top: 5%; 
+    border-radius: 5%;
+}
+.signup{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: underline;
+    margin-top: 1%;
+}
+.signup:hover{
+    font-weight: 500;
+    cursor: pointer;
+}
+.hidden{
+    display:none;
+}
