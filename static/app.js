@@ -2,6 +2,7 @@ const startBtn=document.querySelector("#start");
 const audioTurn = new Audio("/static/ting.mp3");
 let buffer=document.querySelector("#process");
 let buffer2=document.querySelector("#result");
+var isstopped=1;
 if(islogged){
     console.log(user);
     var anchor = document.querySelector(".history")
@@ -55,14 +56,6 @@ const stripEmojis = (str) =>{
     return str.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,'').replace(/\s+/g, ' ').trim();
 }
 function gemini(API,transcript,islogged){
-    if(startBtn.innerText=="start"){
-        if(window.speechSynthesis.speaking){
-        window.speechSynthesis.cancel();
-        }
-        buffer.style.display="none";
-        buffer2.style.display="none";
-        return ;
-    }
     const API_KEY = API;
     fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
     method: 'POST',
@@ -100,6 +93,7 @@ function gemini(API,transcript,islogged){
         let answer=data.candidates[0].content.parts[0].text;
         answer=answer.replaceAll("*","");
         console.log('Response:', answer);
+        if(!isstopped){
         buffer.style.display="none";
         startBtn.className="button";
         startBtn.style.top="0px";
@@ -133,7 +127,8 @@ function gemini(API,transcript,islogged){
             readOut(stripEmojis(answer));
         }
         // Process the generated text from data.text
-
+    }
+    else{return;}
     })
     .catch(error => {
         console.error('Error:', error);
@@ -163,13 +158,8 @@ recognition.onend=function () {
 };
 //sr result
 recognition.onresult=function(event){
-    if(startBtn.innerText=="start"){
-        if(window.speechSynthesis.speaking){
-        window.speechSynthesis.cancel();
-        }
-        buffer.style.display="none";
-        buffer2.style.display="none";
-        return ;
+    if(isstopped){
+        return;
     }
     let current=event.resultIndex;
     let transcript=event.results[current][0].transcript;
@@ -209,9 +199,11 @@ function toggle(){
         audioTurn.play();
         buffer.style.display="block";
         startBtn.className="button down";
+        isstopped=0;
         start();
     }
     else if(startBtn.innerHTML=="Stop"){
+        isstopped=1;
         stop();
     }
 };
