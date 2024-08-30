@@ -197,6 +197,10 @@ function stop(){
 function toggle(){
     if(startBtn.innerHTML=="Start"){
         audioTurn.play();
+        buffer2.style.display="none";
+        if(window.speechSynthesis.speaking){
+            window.speechSynthesis.cancel();
+        }
         buffer.style.display="block";
         startBtn.className="button down";
         isstopped=0;
