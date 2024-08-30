@@ -187,7 +187,7 @@ function start(){
 //sr stop
 function stop(){
     recognition.stop();
-    readOut("Shutting OFF");
+    readOut("a huh");
     startBtn.style.top="600px";
     startBtn.className="button up";
     startBtn.innerHTML="Start";
