@@ -56,6 +56,11 @@ const stripEmojis = (str) =>{
 }
 function gemini(API,transcript,islogged){
     if(startBtn.innerText=="start"){
+        if(window.speechSynthesis.speaking){
+        window.speechSynthesis.cancel();
+        }
+        buffer.style.display="none";
+        buffer2.style.display="none";
         return ;
     }
     const API_KEY = API;
@@ -159,6 +164,11 @@ recognition.onend=function () {
 //sr result
 recognition.onresult=function(event){
     if(startBtn.innerText=="start"){
+        if(window.speechSynthesis.speaking){
+        window.speechSynthesis.cancel();
+        }
+        buffer.style.display="none";
+        buffer2.style.display="none";
         return ;
     }
     let current=event.resultIndex;
