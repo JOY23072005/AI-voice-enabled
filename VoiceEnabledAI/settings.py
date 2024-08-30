@@ -19,6 +19,7 @@ ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://ai-voice-enabled-mo4ukp2fg-joy23072005s-projects.vercel.app/history',
+    'https://ai-voice-enabled.vercel.app/',
 ]
 
 # Application definition
