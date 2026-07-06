@@ -2,34 +2,40 @@ from pathlib import Path
 import os
 from django.contrib import messages
 import dj_database_url
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-dev-secret-key-make-sure-to-set-on-render")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# 🎯 SET TO FALSE ONCE YOU ARE READY TO SHIP: Render injects RENDER=true
+DEBUG = os.environ.get("RENDER") is None
 
-ALLOWED_HOSTS = ['*']
+# 🎯 DYNAMIC RENDERING ENVIRONMENT ALLOWANCES
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS = [RENDER_EXTERNAL_HOSTNAME]
+else:
+    ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
 
+# 🎯 SECURE TRUST TRACKING ORIGINS FOR RENDER HOISTING
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'https://*.vercel.app',
 ]
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://*.vercel.app',  # Replace with your actual domain or IP
+    'https://*.vercel.app',
 ]
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     'Home.apps.HomeConfig',
     'django.contrib.admin',
@@ -43,6 +49,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # 🎯 WHITENOISE MIDDLEWARE: Placed immediately below SecurityMiddleware to serve styles/JS natively
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -57,7 +65,7 @@ ROOT_URLCONF = 'VoiceEnabledAI.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,"templates")],
+        'DIRS': [os.path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,70 +80,48 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'VoiceEnabledAI.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# Database Setup Configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-database_url=os.environ.get("DATABASE_URL")
+database_url = os.environ.get("DATABASE_URL")
 
 if database_url:
-    # If the URL is loaded, parse it and overwrite the default
     DATABASES["default"] = dj_database_url.parse(database_url)
 else:
-    # Optional warning so you know it's falling back
     print("WARNING: DATABASE_URL not found or empty. Using local SQLite.")
 
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
+# --- STATIC FILES ASSETS ARCHITECTURE ---
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-#manually added
-STATICFILES_DIRS =[
-    os.path.join(BASE_DIR,"static")
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static")
 ]
 
-#api key
-# API_KEY=SECRET_KEY = os.environ.get("API_KEY")
+# 🎯 THE PRODUCTION COMPILE DIRECTORY: Where 'collectstatic' will drop compressed assets on Render
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# 🎯 COMPRESSION CACHING ENGINE: Tells WhiteNoise to handle asset optimizations automatically
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Upstream Gemini API Platform Authentication Variable
 API_KEY = os.environ.get("API_KEY")
