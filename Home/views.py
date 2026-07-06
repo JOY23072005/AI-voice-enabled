@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password,check_password
 import json
+from django.views.decorators.csrf import ensure_csrf_cookie
 # logged={"islogged":False,"user":"none"}
 # Create your views here.
 islogged=0
@@ -67,6 +68,7 @@ def Logout(request):
      user=""
      return redirect("/login")
 
+@ensure_csrf_cookie
 def Home(request):
     global hist1,hist2
     api_key=settings.API_KEY

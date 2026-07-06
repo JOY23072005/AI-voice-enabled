@@ -1,23 +1,33 @@
-const startBtn=document.querySelector("#start");
+const startBtn = document.querySelector("#start");
 const audioTurn = new Audio("/static/ting.mp3");
-let buffer=document.querySelector("#process");
-let buffer2=document.querySelector("#result");
-var isstopped=1;
-if(islogged){
+const buffer = document.querySelector("#process");
+const buffer2 = document.querySelector("#result");
+const userTextDisplay = document.querySelector("#user");
+const alexTextDisplay = document.querySelector("#alex");
+
+
+let isStopped = true;
+let isSpeaking = false;
+let isListeningMode = false;
+
+if (islogged) {
     console.log(user);
-    var anchor = document.querySelector(".history")
-    anchor.className="nav-item dropdown"
-    anchor.firstChild.nextSibling.className="nav-link dropdown-toggle"
+    const anchor = document.querySelector(".history");
+    if (anchor) {
+        anchor.className = "nav-item dropdown";
+        if (anchor.firstChild && anchor.firstChild.nextSibling) {
+            anchor.firstChild.nextSibling.className = "nav-link dropdown-toggle";
+        }
+    }
 }
-//post request
-// Function to get the CSRF token from the cookies
+
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
         for (let i = 0; i < cookies.length; i++) {
             const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
@@ -27,203 +37,293 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Your XMLHttpRequest code
-function post(transcript,ans) {
+
+function post(transcript, ans) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "/history", true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        
         xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
-                resolve(response);  // Resolve the Promise with the response
-            } else if (xhr.readyState === 4) {
-                reject(xhr.responseText);  // Reject the Promise with the error
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        resolve(JSON.parse(xhr.responseText));
+                    } catch (e) {
+                        reject("Failed to parse history response JSON");
+                    }
+                } else {
+                    reject(xhr.responseText);
+                }
             }
         };
 
-        const data = JSON.stringify({
-            history: transcript,
-            answer:ans,
-        });
-        xhr.send(data);
+        xhr.send(JSON.stringify({ history: transcript, answer: ans }));
     });
 }
 
-//strip emojis
-const stripEmojis = (str) =>{
-    return str.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,'').replace(/\s+/g, ' ').trim();
-}
-function gemini(API,transcript,islogged){
-    const API_KEY = API;
-    fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-        "model": "gemini-1.5-pro",
-        "contents": [
-        {
-            "role": "user",
-            "parts": [
-            {
-                "text": transcript+"<- generate answer within 50 words"
-            }
-            ]
-        }
-        ],
-        "generationConfig": {
-        "temperature": 1,
-        "topK": 64,
-        "topP": 0.95,
-        "maxOutputTokens": 200,
-        "responseMimeType": "text/plain"
-        }
+
+const stripEmojis = (str) => {
+    return str.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').replace(/\s+/g, ' ').trim();
+};
+
+
+function gemini(transcript, islogged) {
+    if (userTextDisplay) userTextDisplay.style['text-decoration'] = "none";
+
+    fetch('/api/gemini/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') 
+        },
+        body: JSON.stringify({ "transcript": transcript })
     })
-    })
-    .then(response => {
-        if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
-        }
+    .then(async response => {
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         return response.json();
     })
     .then(data => {
-        let answer=data.candidates[0].content.parts[0].text;
-        answer=answer.replaceAll("*","");
+        let answer = data.candidates[0].content.parts[0].text;
+        answer = answer.replaceAll("*", "");
         console.log('Response:', answer);
-        if(!isstopped){
-        buffer.style.display="none";
-        startBtn.className="button";
-        startBtn.style.top="0px";
-        buffer2.style.display="block";
-        document.querySelector("#alex").innerText=answer;
         
-        //posting in history
-        if(islogged){
-            post(transcript,answer)
-            .then(response => {
-                console.log('Success:', response);
-                // You can work with `response` here
-                hist1=document.querySelector("#hist1")
-                hist2=document.querySelector("#hist2")
-                hist2.innerText=hist1.innerText
-                hist1.innerText=response["history"]
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        if (!isStopped) {
+            
+            if (buffer) buffer.classList.remove("is-visible");
+            if (buffer2) buffer2.classList.add("is-visible"); 
+            
+            startBtn.className = "button down"; 
+            startBtn.innerHTML = "Stop"; 
+            isStopped = false;       
+            isListeningMode = true;  
+            
+            
+            if (alexTextDisplay) alexTextDisplay.innerText = answer;
+            
+            if (islogged) {
+                post(transcript, answer)
+                .then(response => {
+                    let hist1 = document.querySelector("#hist1");
+                    let hist2 = document.querySelector("#hist2");
+                    if (hist1 && hist2) {
+                        hist2.innerText = hist1.innerText;
+                        hist1.innerText = response["history"];
+                    }
+                })
+                .catch(error => console.error(error));
+            }
+            
+            if (transcript.includes("code")) {
+                let lastIndex = answer.lastIndexOf("```");
+                let mySubString = lastIndex !== -1 ? answer.substring(lastIndex + 3, answer.length - 1) : answer;
+                readOut(stripEmojis(mySubString));
+            } else {
+                readOut(stripEmojis(answer));
+            }
         }
-        
-        //continue
-        if(transcript.includes("code")){
-            let mySubString = answer.substring( 
-                answer.lastIndexOf("```")+1,answer.length-1
-            );
-            readOut(stripEmojis(mySubString));
-        }
-        else{
-            readOut(stripEmojis(answer));
-        }
-        // Process the generated text from data.text
-    }
-    else{return;}
     })
     .catch(error => {
-        console.error('Error:', error);
-        readOut("I can't answer This right now.I am Sorry!")
-        document.querySelector("#user").style['text-decoration']="line-through";
+        console.error('Core Logic Fallback Routing Error:', error);
+        
+        startBtn.className = "button up";
+        startBtn.innerHTML = "Start";
+        isListeningMode = false;
+        if (buffer) buffer.classList.remove("is-visible");
+        
+        readOut("I can't answer this right now. I am sorry!");
+        if (userTextDisplay) userTextDisplay.style['text-decoration'] = "line-through";
     });
 }
-//speech recognition setup
-const SpeechRecognition=
-window.SpeechRecognition||window.webkitSpeechRecognition;
 
-const recognition=new SpeechRecognition();
-//sr start
-recognition.onstart=function (){
-    readOut("");
-    console.log("vr active");
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.continuous = true;
+
+recognition.onstart = function () {
+    console.log("Speech recognition active loop started.");
 };
-//sr end
-recognition.onend=function () {
-    console.log("vr deactive");
-    buffer.style.display="none";
-    buffer2.style.display="none";
-    if(startBtn.innerHTML=="Stop"){
-        document.querySelector(".card").style.display="none";
-        stop();
+
+recognition.onend = function () {
+    console.log("Speech recognition baseline loop disconnected.");
+    
+    
+    
+    if (!isStopped && isListeningMode && !isSpeaking) {
+        try { recognition.start(); } catch (e) { console.warn("Recognition start skipped: ", e.message); }
     }
 };
-//sr result
-recognition.onresult=function(event){
-    if(isstopped){
+
+recognition.onresult = function(event) {
+    if (isStopped || isSpeaking) {
+        console.log("Input drop gate triggered. Loopback prevented.");
         return;
     }
-    let current=event.resultIndex;
-    let transcript=event.results[current][0].transcript;
-    console.log(transcript);
-    transcript=transcript.toLowerCase();
-    console.log(`my words ${transcript}`);
-    document.querySelector("#user").innerText=transcript;
-    if(transcript==="shutdown" || transcript===" shutdown" || transcript==="shut down" || transcript===" shut down"){
-        toggle();
-        return;
-    }
-    //<--gemini-->
-    gemini(API,transcript,islogged);
-}
-recognition.onerror= (event)=>{
-    console.error(event.error);
-};
-//sr continuos
-recognition.continuous =true;
-//sr start
-function start(){
-    recognition.start();
-    startBtn.innerHTML="Stop";
-}
-//sr stop
-function stop(){
-    recognition.stop();
-    readOut("a huh");
-    startBtn.style.top="600px";
-    startBtn.className="button up";
-    startBtn.innerHTML="Start";
-    buffer.style.display="none";
-    buffer2.style.display="none";
-}
-function toggle(){
-    if(startBtn.innerHTML=="Start"){
-        audioTurn.play();
-        buffer2.style.display="none";
-        if(window.speechSynthesis.speaking){
-            window.speechSynthesis.cancel();
+
+    let current = event.resultIndex;
+    let result = event.results[current];
+    
+    if (result.isFinal) {
+        let transcript = result[0].transcript;
+        transcript = transcript.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim();
+        
+        if (userTextDisplay) userTextDisplay.innerText = transcript;
+
+        
+        if (transcript.includes("shutdown") || 
+            transcript.includes("shut down") || 
+            transcript.includes("goodbye") || 
+            transcript.includes("good bye") || 
+            transcript.includes("exit")) {
+            
+            readOut("Goodbye! Closing voice assistant interface.");
+            toggle(); 
+            return;
         }
-        buffer.style.display="block";
-        startBtn.className="button down";
-        isstopped=0;
-        start();
-    }
-    else if(startBtn.innerHTML=="Stop"){
-        isstopped=1;
-        stop();
+
+        
+        if (transcript.startsWith("open ") || transcript.includes("launch")) {
+            let processedUrl = null;
+            let targetAppName = "";
+
+            if (transcript.includes("youtube")) {
+                processedUrl = "https://www.youtube.com";
+                targetAppName = "YouTube";
+            } else if (transcript.includes("spotify")) {
+                processedUrl = "https://open.spotify.com";
+                targetAppName = "Spotify";
+            } else if (transcript.includes("netflix")) {
+                processedUrl = "https://www.netflix.com";
+                targetAppName = "Netflix";
+            } else if (transcript.includes("hotstar")) {
+                processedUrl = "https://www.hotstar.com";
+                targetAppName = "Disney Plus Hotstar";
+            } else if (transcript.includes("google")) {
+                processedUrl = "https://www.google.com";
+                targetAppName = "Google Search Engine";
+            }
+
+            
+            if (processedUrl) {
+                readOut(`Opening ${targetAppName} right now.`);
+                window.open(processedUrl, '_blank'); 
+                
+                if (alexTextDisplay) {
+                    alexTextDisplay.innerText = `System action triggered successfully: Launched ${targetAppName}.`;
+                }
+                return; 
+            }
+        }
+        gemini(transcript, islogged);
     }
 };
-startBtn.addEventListener("click",toggle);
 
-//speak
-function readOut(response){
-    const voices = window.speechSynthesis.getVoices();
-    const speech=new SpeechSynthesisUtterance()
-    speech.voice=voices[7];
-    if(window.speechSynthesis.speaking){
+recognition.onerror = (event) => {
+    console.error("Speech Recognition Engine Exception:", event.error);
+    
+    if (event.error === 'network') {
+        readOut("Speech recognition network error. Ensure browser dependencies are available.");
+        isStopped = true;
+        isListeningMode = false;
+        try { recognition.stop(); } catch(e) {}
+        
+        startBtn.className = "button up";
+        startBtn.innerHTML = "Start";
+        if (buffer) buffer.classList.remove("is-visible");
+        if (buffer2) buffer2.classList.remove("is-visible");
+    }
+};
+
+
+function startVoiceAssistant() {
+    isStopped = false;
+    isListeningMode = true;
+    startBtn.innerHTML = "Stop";
+    startBtn.className = "button down";
+    
+    if (buffer2) buffer2.classList.remove("is-visible");
+    if (buffer) buffer.classList.add("is-visible");
+    
+    if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
     }
-    speech.text=response;
-    speech.rate=1;
-    speech.volume=1;
+    
+    audioTurn.play();
+    try { recognition.start(); } catch (e) { console.error(e); }
+}
+
+function stopVoiceAssistant() {
+    isStopped = true;
+    isListeningMode = false;
+    startBtn.innerHTML = "Start";
+    startBtn.className = "button up";
+    
+    if (buffer) buffer.classList.remove("is-visible");
+    if (buffer2) buffer2.classList.remove("is-visible");
+    
+    try { recognition.stop(); } catch (e) { console.error(e); }
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+    readOut("a huh");
+}
+
+function toggle() {
+    if (isStopped) {
+        startVoiceAssistant();
+    } else {
+        stopVoiceAssistant();
+    }
+}
+
+startBtn.addEventListener("click", toggle);
+
+
+function readOut(response) {
+    if (!window.speechSynthesis) return;
+
+    
+    isSpeaking = true;
+    try { recognition.stop(); } catch(e) {}
+
+    window.speechSynthesis.cancel();
+
+    const speech = new SpeechSynthesisUtterance();
+    speech.text = response;
+    speech.rate = 1.0;
+    speech.volume = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    let selectedVoice = voices.find(voice => voice.name.includes("Natural") && voice.lang.startsWith("en")) || 
+                        voices.find(voice => voice.name.includes("Google") && voice.lang.startsWith("en")) || 
+                        voices.find(voice => voice.lang.startsWith("en"));
+
+    if (selectedVoice) speech.voice = selectedVoice;
+
+    
+    speech.onend = function() {
+        console.log("Speech playback completed cleanly.");
+        isSpeaking = false;
+        
+        
+        if (!isStopped && isListeningMode) {
+            try { recognition.start(); } catch(e) { console.log("Mic restart skipped:", e.message); }
+        }
+    };
+
+    speech.onerror = function() {
+        isSpeaking = false;
+        if (!isStopped && isListeningMode) {
+            try { recognition.start(); } catch(e) {}
+        }
+    };
+
     window.speechSynthesis.speak(speech);
-    console.log("speaking out"); 
+}
+
+
+if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
 }

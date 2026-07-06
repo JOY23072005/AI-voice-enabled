@@ -18,11 +18,15 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
-    '*.vercel.app',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://*.vercel.app',
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    '*.vercel.app',  # Replace with your actual domain or IP
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://*.vercel.app',  # Replace with your actual domain or IP
 ]
 # Application definition
 
@@ -79,7 +83,13 @@ DATABASES = {
     }
 }
 database_url=os.environ.get("DATABASE_URL")
-DATABASES["default"]=dj_database_url.parse(database_url)
+
+if database_url:
+    # If the URL is loaded, parse it and overwrite the default
+    DATABASES["default"] = dj_database_url.parse(database_url)
+else:
+    # Optional warning so you know it's falling back
+    print("WARNING: DATABASE_URL not found or empty. Using local SQLite.")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
